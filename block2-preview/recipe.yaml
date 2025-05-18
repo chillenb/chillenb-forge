@@ -10,7 +10,10 @@ source:
   tag: "p0.5.4skbuildcore"
 
 build:
-  script: ${{ PYTHON }} -m pip install . -vv
+  script:
+    env:
+      CMAKE_BUILD_PARALLEL_LEVEL: 4
+    content: ${{ PYTHON }} -m pip install . -vv
 
 requirements:
   build:
