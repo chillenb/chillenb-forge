@@ -29,6 +29,9 @@ requirements:
   - mkl
   - mkl-include
   - pybind11 !=2.10.3,!=2.10.4,!=2.11.0,!=2.11.1
+  - if: linux
+    then:
+      - libgomp
   run:
   - numpy
   - scipy
