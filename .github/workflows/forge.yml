@@ -50,6 +50,6 @@ jobs:
         if: github.event_name == 'push'
         run: |
           # ignore errors because we want to ignore duplicate packages
-          for file in output/$PACKAGEDIR/*.conda; do
+          for file in output/**/*.conda; do
             pixi run rattler-build upload anaconda -o chillenb "$file" || true
           done
