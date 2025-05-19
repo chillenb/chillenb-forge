@@ -34,6 +34,10 @@ requirements:
     then:
       - libgomp
   run:
+  - mkl
+  - if: linux
+    then:
+      - libgomp
   - numpy
   - scipy
   - psutil
