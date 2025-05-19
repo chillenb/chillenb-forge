@@ -1,54 +1,58 @@
 context:
-  version: 0.5.3
+  version: "0.24.6"
 
 package:
-  name: block2
+  name: xtensor
   version: ${{ version }}
 
 source:
-  git: https://github.com/chillenb/block2-preview.git
-  tag: "p0.5.4skbuildcore"
+  url: https://github.com/xtensor-stack/xtensor/archive/${{ version }}.tar.gz
+  sha256: f87259b51aabafdd1183947747edfff4cff75d55375334f2e81cee6dc68ef655
 
 build:
+  number: 0
   script:
-    env:
-      CMAKE_BUILD_PARALLEL_LEVEL: 4
-    content: ${{ PYTHON }} -m pip install . -vv
+    - if: win 
+      then: |
+        cmake -GNinja ^
+            -D BUILD_TESTS=OFF -DCMAKE_INSTALL_PREFIX=%LIBRARY_PREFIX% ^
+            %SRC_DIR%
+        ninja install
+      else: |
+        cmake -GNinja \
+              -DBUILD_TESTS=OFF -DCMAKE_INSTALL_PREFIX=$PREFIX \
+              $SRC_DIR
+        ninja install
 
 requirements:
   build:
-  - ${{ compiler('c') }}
-  - ${{ compiler('cxx') }}
-  - cmake <4.0
-  - ninja
+    - ${{ compiler('cxx') }} 
+    - cmake <4.0
+    - ninja
   host:
-  - python
-  - pip
-  - scikit-build-core
-  - setuptools
-  - python-build
-  - mkl
-  - mkl-include
-  - pybind11 !=2.10.3,!=2.10.4,!=2.11.0,!=2.11.1
-  - if: linux
-    then:
-      - libgomp
+    - xtl >=0.7,<0.8
   run:
-  - mkl
-  - if: linux
-    then:
-      - libgomp
-  - numpy
-  - scipy
-  - psutil
+    - xtl >=0.7,<0.8
+  run_constraints: 
+    - xsimd >=8.0.3,<10
 
 tests:
-- python:
-    imports:
-    - block2
-    pip_check: true
+  - package_contents:
+      include: 
+        - xtensor/xarray.hpp
+      files: 
+        - ${{ "Library/" if win }}share/cmake/xtensor/xtensorConfig.cmake
+        - ${{ "Library/" if win }}share/cmake/xtensor/xtensorConfigVersion.cmake
 
 about:
-  homepage: https://github.com/block-hczhai/block2-preview
-  summary: An efficient MPO implementation of DMRG for quantum chemistry.
-  license: GPL-3.0-only	
+  homepage: https://github.com/xtensor-stack/xtensor
+  license: BSD-3-Clause
+  license_file: LICENSE
+  summary: The C++ tensor algebra library
+  description: Multi dimensional arrays with broadcasting and lazy computing
+  documentation: https://xtensor.readthedocs.io
+  repository: https://github.com/xtensor-stack/xtensor
+
+extra:
+  recipe-maintainers:
+    - some-maintainer

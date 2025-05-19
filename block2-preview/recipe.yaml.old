@@ -1,0 +1,54 @@
+context:
+  version: 0.5.3
+
+package:
+  name: block2
+  version: ${{ version }}
+
+source:
+  git: https://github.com/chillenb/block2-preview.git
+  tag: "p0.5.4skbuildcore"
+
+build:
+  script:
+    env:
+      CMAKE_BUILD_PARALLEL_LEVEL: 4
+    content: ${{ PYTHON }} -m pip install . -vv
+
+requirements:
+  build:
+  - ${{ compiler('c') }}
+  - ${{ compiler('cxx') }}
+  - cmake <4.0
+  - ninja
+  host:
+  - python
+  - pip
+  - scikit-build-core
+  - setuptools
+  - python-build
+  - mkl
+  - mkl-include
+  - pybind11 !=2.10.3,!=2.10.4,!=2.11.0,!=2.11.1
+  - if: linux
+    then:
+      - libgomp
+  run:
+  - mkl
+  - if: linux
+    then:
+      - libgomp
+  - numpy
+  - scipy
+  - psutil
+
+tests:
+- python:
+    imports:
+    - block2
+    pip_check: true
+
+about:
+  homepage: https://github.com/block-hczhai/block2-preview
+  summary: An efficient MPO implementation of DMRG for quantum chemistry.
+  license: GPL-3.0-only	
