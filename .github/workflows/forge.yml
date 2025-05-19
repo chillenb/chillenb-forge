@@ -16,8 +16,12 @@ jobs:
   build:
     strategy:
       matrix:
-        include:
-          - { target: linux-64, os: ubuntu-latest }
+        target:
+          - linux-64
+        os:
+          - ubuntu-latest
+        packagedir:
+          - block2-preview
       fail-fast: false
 
     runs-on: ${{ matrix.os }}
@@ -34,9 +38,10 @@ jobs:
         shell: bash
         env:
           TARGET_PLATFORM: ${{ matrix.target }}
+          PACKAGEDIR: ${{ matrix.packagedir }}
 
         run: |
-          pixi run rattler-build build --recipe-dir . \
+          pixi run rattler-build build --recipe-dir $PACKAGEDIR \
             --skip-existing=all --target-platform=$TARGET_PLATFORM \
             -c conda-forge
 
