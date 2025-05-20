@@ -1,0 +1,57 @@
+context:
+  version: 6.1.2
+
+package:
+  name: qcint
+  version: ${{ version }}
+
+source:
+  git: https://github.com/sunqm/qcint.git
+  rev: "276ea73900bf9e9399b230a0036d0c616f8b3092"
+  patches:
+    - 01-microarch.patch
+
+
+requirements:
+  build:
+    - ${{ compiler('c') }}
+    - cmake
+    - make
+  run:
+    - if: x86_64
+      then:
+        - _x86_64-microarch-level >=${{ microarch_level }}
+  run_exports:
+    - ${{ pin_subpackage("qcint", lower_bound="x.x", upper_bound="x.x") }}
+
+
+build:
+  script:
+    content: |
+      cmake ${CMAKE_ARGS} -DCMAKE_BUILD_TYPE=Release \
+      -DCMAKE_INSTALL_PREFIX=$PREFIX \
+      -DCMAKE_INSTALL_LIBDIR=lib \
+      -DBUILD_SHARED_LIBS=ON \
+      -S. \
+      -Bbuild \
+      -DWITH_F12=ON \
+      -DWITH_RANGE_COULOMB=ON \
+      -DWITH_COULOMB_ERF=ON \
+      -DMICROARCH_LEVEL=${{ microarch_level }}
+
+      cmake --build build -j 4
+      cmake --install build
+  number: ${{ 0 + 100 * microarch_level }}
+
+about:
+  summary: general GTO integrals for quantum chemistry
+  license: BSD-2-Clause
+  license_file: LICENSE
+  homepage: https://github.com/sunqm/libcint
+  repository: https://github.com/sunqm/libcint
+  documentation: http://wiki.sunqm.net/libcint
+
+extra:
+  recipe-maintainers:
+    - BastianZim
+    - chillenb
