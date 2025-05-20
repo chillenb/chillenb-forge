@@ -6,10 +6,13 @@ package:
   version: ${{ version }}
 
 source:
-  git: https://github.com/chillenb/block2-preview.git
-  tag: "p0.5.4skbuildcore"
+  git: https://github.com/block-hczhai/block2-preview.git
+  rev: "6fa8ad775fe016a91557f65e3842f50ad67687a7"
+  patches:
+    - 01-buildsystem.patch
 
 build:
+  number: 1
   script:
     env:
       CMAKE_BUILD_PARALLEL_LEVEL: 4
