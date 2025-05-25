@@ -1,8 +1,8 @@
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 6d71c9d..cf39550 100644
+index 6d71c9d..9df00f3 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -12,15 +12,23 @@ if ("${CMAKE_BUILD_TYPE}" STREQUAL "")
+@@ -12,15 +12,33 @@ if ("${CMAKE_BUILD_TYPE}" STREQUAL "")
    set(CMAKE_BUILD_TYPE RELWITHDEBINFO)
  endif()
  set(CMAKE_VERBOSE_MAKEFILE OFF)
@@ -15,10 +15,19 @@ index 6d71c9d..cf39550 100644
 +if(MICROARCH_LEVEL STREQUAL "4")
 +  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=x86-64-v4 -mtune=cascadelake")
 +  set(QCINT_VECTOR_LEVEL "avx512f")
++  set(QCINT_HAS_AVX512F 1)
++  set(QCINT_HAS_AVX2 1)
++  set(QCINT_HAS_AVX 1)
++  set(QCINT_HAS_FMA 1)
++  set(QCINT_HAS_SSE3 1)
 +  set(QCINT_SIMDD 8)
 +elseif(MICROARCH_LEVEL STREQUAL "3")
 +  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=x86-64-v3 -mtune=cascadelake")
 +  set(QCINT_VECTOR_LEVEL "avx")
++  set(QCINT_HAS_AVX2 1)
++  set(QCINT_HAS_AVX 1)
++  set(QCINT_HAS_FMA 1)
++  set(QCINT_HAS_SSE3 1)
 +  set(QCINT_SIMDD 4)
  else()
 -  # This appears to be the lowest version that compiles
@@ -26,6 +35,7 @@ index 6d71c9d..cf39550 100644
 -  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -msse3 -O2")
 +  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=nocona -mtune=haswell")
 +  set(QCINT_VECTOR_LEVEL "sse3")
++  set(QCINT_HAS_SSE3 1)
 +  set(QCINT_SIMDD 2)
  endif()
 +
@@ -33,7 +43,7 @@ index 6d71c9d..cf39550 100644
  if ("${CMAKE_C_COMPILER_ID}" STREQUAL "Intel")
    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -unroll-aggressive -ipo ")
    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fno-math-errno")
-@@ -52,23 +60,7 @@ check_function_exists(sqrtl HAVE_SQRTL)
+@@ -52,26 +70,14 @@ check_function_exists(sqrtl HAVE_SQRTL)
  #set(CMAKE_REQUIRED_LIBRARIES quadmath)
  #check_function_exists(fabsq HAVE_QUADMATH_H)
  
@@ -51,15 +61,162 @@ index 6d71c9d..cf39550 100644
 -elseif(SSE3_WORKS)
 -  set(QCINT_VECTOR_LEVEL "sse3")
 -  set(QCINT_SIMDD 2)
--else()
--  message(FATAL_ERROR "SSE3 is the minimum supported instruction set")
--endif()
 +
++message("Will compile with vectorization level: ${QCINT_VECTOR_LEVEL}, SIMDD=${QCINT_SIMDD}")
++if(QCINT_HAS_FMA)
++  message("Using FMA instructions")
+ else()
+-  message(FATAL_ERROR "SSE3 is the minimum supported instruction set")
++  message("Not using FMA instructions")
+ endif()
  
- message("Will compile with vectorization width: ${QCINT_VECTOR_LEVEL}, SIMDD=${QCINT_SIMDD}")
+-message("Will compile with vectorization width: ${QCINT_VECTOR_LEVEL}, SIMDD=${QCINT_SIMDD}")
+-
+ configure_file(
+   "${PROJECT_SOURCE_DIR}/src/cint_config.h.in"
+   "${PROJECT_BINARY_DIR}/src/cint_config.h")
+diff --git a/cmake/CheckNativeVectorization.cmake b/cmake/CheckNativeVectorization.cmake
+index fdc2337..937b191 100644
+--- a/cmake/CheckNativeVectorization.cmake
++++ b/cmake/CheckNativeVectorization.cmake
+@@ -23,6 +23,7 @@
  
+ macro(check_native_vectorization)
+   # Check for native vectorization
++  # Respects march flags in CMAKE_C_FLAGS.
+   include(CheckCSourceRuns)
+   check_c_source_runs("
+   #include <immintrin.h>
+@@ -40,7 +41,7 @@ macro(check_native_vectorization)
+     }
+     return 0;
+   }"
+-  SSE3_WORKS)
++  QCINT_HAS_SSE3)
+ 
+     check_c_source_runs("
+     #include <immintrin.h>
+@@ -60,7 +61,7 @@ macro(check_native_vectorization)
+         }
+         return 0;
+     }"
+-    AVX_WORKS)
++    QCINT_HAS_AVX)
+ 
+     check_c_source_runs("
+     #include <immintrin.h>
+@@ -80,7 +81,28 @@ macro(check_native_vectorization)
+       }
+       return 0;
+     }"
+-    AVX2_WORKS)
++    QCINT_HAS_AVX2)
++
++    check_c_source_runs("
++    #include <immintrin.h>
++    int main()
++    {
++        volatile __m256 a, b, c;
++        const float src[8] = { 1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f };
++        float dst[8];
++        a = _mm256_loadu_ps( src );
++        b = _mm256_loadu_ps( src );
++        c = _mm256_loadu_ps( src );
++        c = _mm256_fmadd_ps(a, b, c);
++        _mm256_storeu_ps( dst, c );
++        for( int i = 0; i < 8; i++ ){
++            if( ( src[i] * src[i] + src[i] ) != dst[i] ){
++                return -1;
++            }
++        }
++        return 0;
++    }"
++    QCINT_HAS_FMA)
+ 
+     check_c_source_runs("
+         #include <immintrin.h>
+@@ -100,5 +122,5 @@ macro(check_native_vectorization)
+             }
+             return 0;
+         }"
+-    AVX512F_WORKS)
++    QCINT_HAS_AVX512F)
+ endmacro()
+diff --git a/include/cint.h.in b/include/cint.h.in
+index 031cdf9..4fe0e74 100644
+--- a/include/cint.h.in
++++ b/include/cint.h.in
+@@ -148,6 +148,12 @@
+ #include <immintrin.h>
+ #include <mm_malloc.h>
+ 
++#cmakedefine QCINT_HAS_AVX512F
++#cmakedefine QCINT_HAS_AVX2
++#cmakedefine QCINT_HAS_FMA
++#cmakedefine QCINT_HAS_AVX
++#cmakedefine QCINT_HAS_SSE3
++
+ #cmakedefine QCINT_SIMDD @QCINT_SIMDD@
+ #ifdef QCINT_SIMDD
+ #define SIMDD QCINT_SIMDD
+diff --git a/src/cint1e_grids.c b/src/cint1e_grids.c
+index be9e0f2..2d6b310 100644
+--- a/src/cint1e_grids.c
++++ b/src/cint1e_grids.c
+@@ -123,14 +123,14 @@ int CINT1e_grids_loop(double *gctr, CINTEnvVars *envs, double *cache)
+ 
+ #if (SIMDD == 8)
+         __m256i vindex = _mm256_set_epi32(21, 18, 15, 12, 9, 6, 3, 0);
+-#elif __AVX2__
++#elif defined(QCINT_HAS_AVX2)
+         __m128i vindex = _mm_set_epi32(9, 6, 3, 0);
+ #endif
+         for (grids_offset = 0; grids_offset < ngrids; grids_offset += GRID_BLKSIZE) {
+                 envs->grids_offset = grids_offset;
+                 bgrids = MIN(ngrids - grids_offset, GRID_BLKSIZE);
+                 bgrids = ALIGN_UP(bgrids, SIMDD);
+-#if (SIMDD == 8) || __AVX2__
++#if (SIMDD == 8) || defined(QCINT_HAS_AVX2)
+                 for (i = 0; i < bgrids; i += SIMDD) {
+                         MM_STORE(gridsT+i+GRID_BLKSIZE*0, MM_GATHER(grids+(grids_offset+i)*3+0, vindex, 8));
+                         MM_STORE(gridsT+i+GRID_BLKSIZE*1, MM_GATHER(grids+(grids_offset+i)*3+1, vindex, 8));
+diff --git a/src/g1e.c b/src/g1e.c
+index 81ce2b2..84e05c5 100644
+--- a/src/g1e.c
++++ b/src/g1e.c
+@@ -1020,7 +1020,7 @@ void CINTsort_gout(double *sout, double *gout, int nf, int count)
+         }
+ 
+         int i = 0;
+-#if __AVX2__
++#if defined(QCINT_HAS_AVX2)
+ #if (SIMDD == 8)
+         __m256i vindex = _mm256_set_epi32(7*SIMDD, 6*SIMDD, 5*SIMDD, 4*SIMDD,
+                                           3*SIMDD, 2*SIMDD, 1*SIMDD, 0);
+@@ -1136,7 +1136,7 @@ void CINTsort_gout(double *sout, double *gout, int nf, int count)
+ #endif
+         }
+ 
+-#else // AVX or SSE3
++#else // no AVX2, only AVX or SSE3
+         switch (count) {
+         case 1:
+                 for (i = 0; i < nf; i++) {
+diff --git a/src/gout2e.c b/src/gout2e.c
+index c981e7f..c631a5e 100644
+--- a/src/gout2e.c
++++ b/src/gout2e.c
+@@ -213,7 +213,7 @@ void CINTgout2e(double *gout, double *g, int *idx, CINTEnvVars *envs)
+         }
+ }
+ 
+-#elif __AVX2__
++#elif defined(QCINT_HAS_AVX2)
+ #define collect \
+         MM_STORE(gc+2*SIMDD, r0); \
+         MM_STORE(gc+3*SIMDD, r1); \
 diff --git a/src/simd.h b/src/simd.h
-index 4a12e26..be00291 100644
+index 4a12e26..d09aa08 100644
 --- a/src/simd.h
 +++ b/src/simd.h
 @@ -26,7 +26,7 @@
@@ -80,6 +237,15 @@ index 4a12e26..be00291 100644
  #define __MD            __m256d
  #define MM_LOAD         _mm256_load_pd
  #define MM_LOADU        _mm256_loadu_pd
+@@ -59,7 +59,7 @@
+ #define MM_STORE        _mm256_store_pd
+ #define MM_STOREU       _mm256_storeu_pd
+ #define MM_GATHER       _mm256_i32gather_pd
+-#ifdef __FMA__
++#ifdef QCINT_HAS_FMA
+ #define MM_FMA          _mm256_fmadd_pd
+ #define MM_FNMA         _mm256_fnmadd_pd
+ #else
 @@ -69,7 +69,7 @@
  #define MM_CMP(a,b,c)   _mm256_movemask_pd(_mm256_cmp_pd(a,b,c))
  #define MM_EXPN(y,x,rx) y[0] = exp(-x[0]); y[1] = exp(-x[1]); y[2] = exp(-x[2]); y[3] = exp(-x[3])
@@ -89,3 +255,26 @@ index 4a12e26..be00291 100644
  #define __MD            __m128d
  #define MM_LOAD         _mm_load_pd
  #define MM_LOADU        _mm_loadu_pd
+@@ -82,16 +82,20 @@
+ #define MM_STORE        _mm_store_pd
+ #define MM_STOREU       _mm_storeu_pd
+ #define MM_GATHER       _mm_i32gather_pd
+-#ifdef __FMA__
++#ifdef QCINT_HAS_FMA
+ #define MM_FMA          _mm_fmadd_pd
+ #define MM_FNMA         _mm_fnmadd_pd
+ #else
+ #define MM_FMA(a,b,c)   _mm_add_pd(_mm_mul_pd(a, b), c)
+ #define MM_FNMA(a,b,c)  _mm_sub_pd(c, _mm_mul_pd(a, b))
+ #endif
+-#ifdef __SSE4_2__
++
++// #ifdef __SSE4_2__
++// the _mm_cmp_pd intrinsic (vcmppd) requires AVX
++#ifdef QCINT_HAS_AVX
+ #define MM_CMP(a,b,c)   _mm_movemask_pd(_mm_cmp_pd(a,b,c))
+ #endif
++
+ #define MM_EXPN(y,x,rx) y[0] = exp(-x[0]); y[1] = exp(-x[1])
+ 
+ #endif

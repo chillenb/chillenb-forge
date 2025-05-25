@@ -41,7 +41,7 @@ build:
 
       cmake --build build -j 4
       cmake --install build
-  number: ${{ 1 + 100 * microarch_level }}
+  number: ${{ 2 + 100 * microarch_level }}
 
 about:
   summary: general GTO integrals for quantum chemistry
