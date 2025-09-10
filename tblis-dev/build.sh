@@ -6,7 +6,7 @@ unset PYTHON
 
 cmake -B build -S . \
       ${CMAKE_ARGS} -DCMAKE_BUILD_TYPE=Release \
-      -DCMAKE_INSTALL_PREFIX="${PREFIX}" \
+      -DCMAKE_INSTALL_PREFIX=$PREFIX \
       -DENABLE_HWLOC=ON \
       -DBLIS_THREAD_MODEL=openmp \
       -DENABLE_THREAD_MODEL=openmp \
