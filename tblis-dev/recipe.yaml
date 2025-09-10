@@ -28,7 +28,7 @@ requirements:
 
 
 build:
-  number: 1
+  number: 2
 
 about:
   summary: Tensor-Based Library Instantiation Software

@@ -15,3 +15,4 @@ cmake -B build -S . \
 cmake --build build -j${CPU_COUNT}
 cmake --install build
 
+sed -i "s:${BUILD_PREFIX}/x86_64-conda-linux-gnu/sysroot/usr/lib/libm.so;::g" ${PREFIX}/lib/cmake/TCI/TCITargets.cmake
