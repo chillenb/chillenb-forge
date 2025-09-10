@@ -1,0 +1,49 @@
+
+context:
+  name: pytblis
+  version: 0.0.6
+
+package:
+  name: ${{ name }}
+  version: ${{ version }}
+
+source:
+  git: https://github.com/chillenb/pytblis.git
+  tag: "v${{ version }}"
+
+build:
+  script:
+    content: |
+      export CMAKE_BUILD_PARALLEL_LEVEL=${CPU_COUNT}
+      export SKBUILD_CMAKE_ARGS=${CMAKE_ARGS}
+      $PYTHON -m pip install --no-build-isolation --no-deps . -vv
+  number: 0
+
+requirements:
+  build:
+    - ${{ compiler('c') }}
+    - ${{ compiler('cxx') }}
+    - cmake >=3.10
+    - make
+    - setuptools
+  host:
+    - python
+    - setuptools
+    - setuptools_scm
+    - pip
+    - nanobind
+    - scikit-build-core
+    - tblis-dev >=2.0,<3
+  run:
+    - numpy
+
+about:
+  homepage: https://github.com/chillenb/pytblis
+  summary: Python bindings for TBLIS
+  license: BSD-3-Clause
+  license_file: LICENSE
+  repository: https://github.com/chillenb/pytblis
+
+extra:
+  recipe-maintainers:
+    - chillenb
