@@ -8,18 +8,24 @@ on:
 
 jobs:
   build:
+    name: Build tblis-dev on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
-        packagedir:
-          - tblis-dev
         include:
           - os: ubuntu-latest
             target: linux-64
+            packagedir: tblis-dev
+
+          - os: ubuntu-24.04-arm
+            target: linux-aarch64
+            packagedir: tblis-dev
+
           - os: macos-latest
             target: osx-arm64
-      fail-fast: false
+            packagedir: tblis-dev
 
-    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
         with:
