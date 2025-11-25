@@ -10,6 +10,7 @@ jobs:
   build:
     name: Build tblis-dev on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
+    container: ${{ matrix.container || '' }}
     strategy:
       fail-fast: false
       matrix:
@@ -17,10 +18,12 @@ jobs:
           - os: ubuntu-latest
             target: linux-64
             packagedir: tblis-dev
+            container: quay.io/condaforge/linux-anvil-x86_64:alma9
 
           - os: ubuntu-24.04-arm
             target: linux-aarch64
             packagedir: tblis-dev
+            container: quay.io/condaforge/linux-anvil-aarch64:alma9
 
           - os: macos-latest
             target: osx-arm64
