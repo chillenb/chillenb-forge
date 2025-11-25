@@ -1,0 +1,25 @@
+c_compiler:
+  - if: linux
+    then: gcc
+  - if: osx
+    then: clang
+cxx_compiler:
+  - if: linux
+    then: gxx
+  - if: osx
+    then: clangxx
+c_compiler_version:
+  - if: linux
+    then: '14'
+  - if: osx
+    then: '19'
+c_stdlib:
+  - if: linux
+    then: sysroot
+  - if: osx
+    then: macosx_deployment_target
+c_stdlib_version:
+  - if: linux
+    then: '2.17'
+  - if: osx
+    then: '11.0'

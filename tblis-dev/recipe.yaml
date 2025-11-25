@@ -1,5 +1,5 @@
 context:
-  version: 2.0_9b95712
+  version: 2.0_eb719e71
 
 package:
   name: tblis-dev
@@ -7,7 +7,7 @@ package:
 
 source:
   git: https://github.com/MatthewsResearchGroup/tblis.git
-  rev: "9b95712966cb8804be51c62bfd6207957f62bc6f"
+  rev: "eb719e718976572e0ab53975f4e0c799faeb35f2"
 
 
 requirements:
@@ -28,7 +28,12 @@ requirements:
 
 
 build:
-  number: 2
+  number: 0
+  script:
+    file: build.sh
+    env:
+      TBLIS_ARCH: ${{ "x86_64" if x86_64 else "arm64" if arm64 else "unknown" }}
+
 
 about:
   summary: Tensor-Based Library Instantiation Software

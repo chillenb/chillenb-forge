@@ -10,12 +10,13 @@ jobs:
   build:
     strategy:
       matrix:
-        target:
-          - linux-64
-        os:
-          - ubuntu-latest
         packagedir:
           - tblis-dev
+        include:
+          - os: ubuntu-latest
+            target: linux-64
+          - os: macos-latest
+            target: osx-arm64
       fail-fast: false
 
     runs-on: ${{ matrix.os }}
