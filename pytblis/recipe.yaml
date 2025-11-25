@@ -15,10 +15,9 @@ build:
   script:
     content: |
       export CMAKE_BUILD_PARALLEL_LEVEL=${CPU_COUNT}
-      export CMAKE_GENERATOR="Unix Makefiles"
       export SKBUILD_CMAKE_ARGS=${CMAKE_ARGS}
       $PYTHON -m pip install --no-build-isolation --no-deps . -vv
-  number: 0
+  number: 1
 
 requirements:
   build:
