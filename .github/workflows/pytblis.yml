@@ -8,17 +8,27 @@ on:
 
 jobs:
   build:
-    strategy:
-      matrix:
-        target:
-          - linux-64
-        os:
-          - ubuntu-latest
-        packagedir:
-          - pytblis
-      fail-fast: false
-
+    name: Build pytblis on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
+    container: ${{ matrix.container || '' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: linux-64
+            packagedir: pytblis
+            container: quay.io/condaforge/linux-anvil-x86_64:alma9
+
+          - os: ubuntu-24.04-arm
+            target: linux-aarch64
+            packagedir: pytblis
+            container: quay.io/condaforge/linux-anvil-aarch64:alma9
+
+          - os: macos-latest
+            target: osx-arm64
+            packagedir: pytblis
+
     steps:
       - uses: actions/checkout@v4
         with:
