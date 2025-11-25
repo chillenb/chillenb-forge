@@ -33,10 +33,10 @@ requirements:
     - pip
     - nanobind
     - scikit-build-core
-    - tblis-dev >=2.0,<3
+    - tblis-dev >1
   run:
     - numpy
-    - tblis-dev >=2.0,<3
+    - tblis-dev >1
 
 tests:
   - script:
