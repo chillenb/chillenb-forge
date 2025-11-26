@@ -59,6 +59,7 @@ jobs:
     environment: anaconda
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       - uses: actions/download-artifact@v6
         with:
           pattern: tblis-dev-packages-*
@@ -71,8 +72,8 @@ jobs:
         shell: bash
         env:
           ANACONDA_API_KEY: ${{ secrets.ANACONDA_API_KEY }}
+
         run: |
-          # ignore errors because we want to ignore duplicate packages
           for file in packages/**/*.conda; do
             pixi run rattler-build upload anaconda -o chillenb "$file" || true
           done
