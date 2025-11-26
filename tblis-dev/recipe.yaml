@@ -26,10 +26,12 @@ requirements:
         - libgomp
       else:
         - llvm-openmp
+  run_exports:
+    - ${{ pin_subpackage('tblis-dev', exact=True) }}
 
 
 build:
-  number: 6
+  number: 7
   script:
     file: build.sh
     env:

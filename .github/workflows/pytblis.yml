@@ -50,7 +50,31 @@ jobs:
             --skip-existing=all --target-platform=$TARGET_PLATFORM \
             -c chillenb -c conda-forge
 
+      - name: Upload packages to Github
+        uses: actions/upload-artifact@v5
+        with:
+          name: pytblis-packages-${{ matrix.target }}-${{ strategy.job-index }}
+          path: output/**/*.conda
+
+  upload_all:
+    needs: build
+    environment: anaconda
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v6
+        with:
+          pattern: pytblis-packages-*
+          path: packages
+      - uses: prefix-dev/setup-pixi@v0.8.8
+        with:
+          pixi-version: v0.47.0
+          cache: true
+      - name: Upload packages to Anaconda
+        shell: bash
+        env:
+          ANACONDA_API_KEY: ${{ secrets.ANACONDA_API_KEY }}
+        run: |
           # ignore errors because we want to ignore duplicate packages
-          for file in output/**/*.conda; do
+          for file in packages/**/*.conda; do
             pixi run rattler-build upload anaconda -o chillenb "$file" || true
           done
