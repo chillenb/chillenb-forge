@@ -29,7 +29,7 @@ requirements:
 
 
 build:
-  number: 5
+  number: 6
   script:
     file: build.sh
     env:
