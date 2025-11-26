@@ -76,6 +76,6 @@ jobs:
           ANACONDA_API_KEY: ${{ secrets.ANACONDA_API_KEY }}
 
         run: |
-          for file in packages/**/*.conda; do
+          find packages -name "*.conda" -type f | while read -r file; do
             pixi run rattler-build upload anaconda -o chillenb "$file" || true
           done
