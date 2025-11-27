@@ -1,7 +1,7 @@
 
 context:
   name: pytblis
-  version: 0.0.10
+  version: 0.0.11
 
 package:
   name: ${{ name }}
@@ -17,7 +17,7 @@ build:
       export CMAKE_BUILD_PARALLEL_LEVEL=${CPU_COUNT}
       export SKBUILD_CMAKE_ARGS=${CMAKE_ARGS}
       $PYTHON -m pip install --no-build-isolation --no-deps . -vv
-  number: 3
+  number: 0
 
 requirements:
   build:
