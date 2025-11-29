@@ -2,11 +2,11 @@
 authors = ["chillenb <chillenbrand15@gmail.com>"]
 channels = ["conda-forge"]
 name = "chillenb-forge"
-platforms = ["linux-64", "osx-arm64", "linux-aarch64"]
+platforms = ["linux-64", "osx-arm64", "linux-aarch64", "osx-64"]
 version = "0.1.0"
 
 [tasks]
 
 [dependencies]
-rattler-build = ">=0.51.0,<0.52"
+rattler-build = ">=0.53.0,<0.54"
 git = ">=2.52.0,<3"

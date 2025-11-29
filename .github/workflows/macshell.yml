@@ -2,17 +2,26 @@ name: macshell debug
 
 on:
   workflow_dispatch:
+    inputs:
+      runner:
+        description: 'macOS runner type'
+        required: true
+        type: choice
+        options:
+          - macos-latest
+          - macos-15-intel
+        default: macos-latest
 
 jobs:
   debug:
-    runs-on: macos-latest
+    runs-on: ${{ github.event.inputs.runner }}
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 2
       - uses: prefix-dev/setup-pixi@v0.8.8
         with:
-          pixi-version: v0.47.0
+          pixi-version: v0.59.0
           cache: true
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
